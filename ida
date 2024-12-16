@@ -1,0 +1,66 @@
+import requests
+import json
+
+# Solana RPC endpoint (you can replace this with a specific RPC server if needed)
+SOLANA_RPC_URL = "https://api.mainnet-beta.solana.com"
+
+# Function to fetch block data by slot
+def fetch_block_by_slot(slot: int):
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+    # JSON-RPC request to fetch block data by slot
+    payload = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "getBlock",
+        "params": [slot, {"encoding": "json"}]  # Change encoding to base64 if needed
+    }
+
+    response = requests.post(SOLANA_RPC_URL, headers=headers, json=payload)
+
+    if response.status_code == 200:
+        block_data = response.json()
+        if 'result' in block_data:
+            return block_data['result']
+        else:
+            print("Error:", block_data.get('error', 'Unknown error'))
+    else:
+        print("Failed to fetch data:", response.status_code)
+
+# Fetch the current slot to start working with the block data
+def fetch_current_slot():
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "getSlot",
+        "params": []
+    }
+
+    response = requests.post(SOLANA_RPC_URL, headers=headers, json=payload)
+
+    if response.status_code == 200:
+        slot_data = response.json()
+        if 'result' in slot_data:
+            return slot_data['result']
+        else:
+            print("Error:", slot_data.get('error', 'Unknown error'))
+    else:
+        print("Failed to fetch data:", response.status_code)
+
+# Main execution
+if __name__ == "__main__":
+    # Fetch current slot (block number)
+    current_slot = fetch_current_slot()
+    if current_slot is not None:
+        print(f"Current Slot: {current_slot}")
+
+        # Fetch block data for the current slot
+        block_data = fetch_block_by_slot(current_slot)
+        if block_data:
+            print(json.dumps(block_data, indent=4))
